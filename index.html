@@ -50,27 +50,103 @@
         </style>
     </head>
     <body class="text-center text-light flex justify-content-center p-2 wrapper">
-        <h1 class="display-1 pb-3 scale">Dattie!</h1>
-        <h3 class="slide">Days: </h3><span id="days" class="display-6"></span>
-        <h3 class="slide">Hours: </h3><span id="hours" class="display-6"></span>
-        <h3 class="slide">Mintues: </h3><span id="minutes" class="display-6"></span>
-        <h3 class="slide">Seconds: </h3><span id="seconds" class="display-6"></span><br>
-        <div class="form-group p-2 w-100">
-            <input type="date" id="countdate" name="countdate" class="form-control"><br>
-            <input type="time" id="counttime" name="counttime" class="form-control"><br>
-            <button onclick="Start()" class="btn btn-primary">Count Down!</button>
+        <div class="form p-5">
+            <h1 class="display-1 pb-3 scale">Dattie!</h1>
+            <p class="blockquote">Put in the name, date and time.</p>
+        </div>
+        <div class="count">
+            <h2 class="display-3" id="name">Something</h2>
+            <p class="lead">in...</p>
+            <h3 class="slide">Days: </h3><span id="days" class="display-6"></span>
+            <h3 class="slide">Hours: </h3><span id="hours" class="display-6"></span>
+            <h3 class="slide">Mintues: </h3><span id="minutes" class="display-6"></span>
+            <h3 class="slide">Seconds: </h3><span id="seconds" class="display-6"></span><br>
+        </div>
+        <div class="form-group w-100 form">
+            <input id="nameinput" name="nameinput" placeholder="Event Name" class="form-control" required><br>
+            <input type="date" id="countdate" name="countdate" class="form-control" required><br>
+            <input type="time" id="counttime" name="counttime" class="form-control" required><br>
+            <button onclick="Start()" class="btn btn-primary">Count Down!</button><br>
+        </div>
+        <div class="count">
+            <div class="flex d-flex pt-3">
+                <input value="yes" class="form-control" id="copy"></input>
+                <button onclick="Copy()" class="btn btn-success">Copy</button>
+            </div>
+            <button class="btn btn-danger m-3" onclick="Reset()">Reset</button>
+        </div>
         </div>
     </body>    
 </html>
-<script>        
+<script>
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    var params = urlParams.get('end')
+    var secdate;
+    var diff = null;
+    var active = true
+    var name
+
+    if (params != null) {
+        params = urlParams.get('end').split('!')
+        console.log(params)
+        const end = params[0]
+        const strname = params[1]
+        secdate = end
+        name = strname
+        active = false
+        Set()
+    }
+
+    SetActive();
+
+    function SetActive() {
+        var counting = document.getElementsByClassName("count");
+        var form = document.getElementsByClassName("form");
+
+        if (active) {
+            for (var i=0; i<counting.length; i++) {
+                counting[i].style.display = 'none';
+            }
+
+            for (var i=0; i<form.length; i++) {
+                form[i].style.display = 'initial';
+            }
+        } else {
+            for (var i=0; i<counting.length; i++) {
+                counting[i].style.display = 'initial';
+            }
+            for (var i=0; i<form.length; i++) {
+                form[i].style.display = 'none';
+            }
+        }
+    }
+
+    function Reset () {
+        active = true
+        SetActive()
+    }
+
     function Start() {
         var date = document.getElementById("countdate").value
         var time = document.getElementById("counttime").value
-        
-        var secdate = new Date(date.split('-')[0], date.split('-')[1], date.split('-')[2] - 31, time.split(':')[0], time.split(':')[1]).getTime()
-        var nowdate = new Date().getTime()  
+        name = document.getElementById("nameinput").value
+        if (date != "" && time != "" && name != "") {
+            secdate = new Date(date.split('-')[0], date.split('-')[1], date.split('-')[2] - 31, time.split(':')[0], time.split(':')[1]).getTime()
+            active = false        
+            Set()
+        } else {
+            window.alert('Please fill in all the fields')
+        }
+    }
 
-        var count = dateDiff(secdate, nowdate )
+    function Set() {
+        var nowdate = new Date().getTime()
+        var count = dateDiff(secdate, nowdate)
+        
+        document.getElementById("copy").value = "Kurtnet.me/Dattie?end=" + secdate + "!" + name
+
+        document.getElementById("name").innerHTML = name
 
         if (document.getElementById("days").innerHTML != count.d) {
             document.getElementById("days").className = "display-4 pulse";
@@ -84,15 +160,17 @@
         if (document.getElementById("seconds").innerHTML != count.s) {
             document.getElementById("seconds").className = "display-4 pulse";
         }
+
         document.getElementById("days").innerHTML = count.d;
         document.getElementById("hours").innerHTML = count.h;
         document.getElementById("minutes").innerHTML = count.m;
         document.getElementById("seconds").innerHTML = count.s;
-        setInterval(Start, 1000)   ;
+        SetActive()
+        setInterval(Set, 1000);
     }
 
     function dateDiff( str1, str2 ) {
-            var diff = str1 - str2; 
+            diff = str1 - str2; 
             return isNaN( diff ) ? NaN : {
                 diff : diff,
                 ms : Math.floor( diff            % 1000 ),
@@ -101,5 +179,10 @@
                 h  : Math.floor( diff /  3600000 %   24 ),
                 d  : Math.floor( diff / 86400000        )
             };
-    }    
+    }  
+
+    function Copy() {
+        document.getElementById("copy").select()
+        document.execCommand('copy')
+    }  
 </script>
